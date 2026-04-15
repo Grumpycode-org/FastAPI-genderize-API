@@ -4,8 +4,6 @@ from app.services.gender_service import get_gender_data  # Service layer
 from app.utils.helpers import get_utc_timestamp  # Timestamp helper
 
 from fastapi.middleware.cors import CORSMiddleware  # CORS middleware
-from fastapi.responses import JSONResponse
-from fastapi.requests import Request
 
 
 
@@ -21,20 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content=exc.detail,
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*"
-        }
-
-    )
-
-
 # Define GET Endpoint: /api/classify
 @app.get("/api/classify")
 async def classify(name: Optional[str] = Query(default=None)):
@@ -44,22 +28,23 @@ async def classify(name: Optional[str] = Query(default=None)):
     # ---------------------------
 
     # Check if name is missing or empty
-    if not name or name.strip() == "":
+    # Missing or empty name → 400/422
+    if name is None or name.strip() == "":
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail={
                 "status": "error",
-                "message": "Name cannot be empty"
+                "message": "Name parameter is required"
             }
         )
 
-
-    if any(char.isdigit() for char in name):
+    # Reject names with digits (invalid type/content) → 422
+    if any(ch.isdigit() for ch in name):
         raise HTTPException(
             status_code=422,
             detail={
                 "status": "error",
-                "message": "Invalid name parameter: must be a string"
+                "message": "Invalid name parameter: must not contain digits"
             }
         )
  
@@ -93,7 +78,7 @@ async def classify(name: Optional[str] = Query(default=None)):
     #         }
     #     )
         
-    if result or result.get("gender") is None or result.get("count") == 0:
+    if not result or result.get("gender") is None or result.get("count") == 0:
         return {
             "status": "success",
             "data": {
@@ -102,10 +87,9 @@ async def classify(name: Optional[str] = Query(default=None)):
                 "probability": 0,
                 "sample_size": 0,
                 "is_confident": False,
-                "processed_at": get_utc_timestamp()
-            }
+                "processed_at": get_utc_timestamp(),
+            },
         }
-
 
     # ---------------------------
     # FINAL RESPONSE

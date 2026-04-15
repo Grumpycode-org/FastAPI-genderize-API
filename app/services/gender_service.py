@@ -41,7 +41,7 @@ def get_gender_data(name: str):
 
     #comput confidence
     is_confident = (
-        probability >= 0.6 and 
+        probability >= 0.7 and 
         sample_size >= 100
     )
 
