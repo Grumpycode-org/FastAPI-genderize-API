@@ -25,9 +25,9 @@ def get_gender_data(name: str):
         timeout=2
     )
 
-    #Check if API call failed
-    if response.status_code != 200:
-        raise Exception("External API Error")
+    # #Check if API call failed
+    # if response.status_code != 200:
+    #     raise Exception("External API Error")
     
     #Convert response to JSON
     data = response.json()
@@ -35,8 +35,8 @@ def get_gender_data(name: str):
     if data.get("gender") is None or data.get("count") == 0:
         return None
     
-    gender = data.get("gender"),
-    probability = data.get("probability"),
+    gender = data.get("gender")
+    probability = data.get("probability")
     sample_size = data.get("count")
 
     #comput confidence

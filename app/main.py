@@ -27,33 +27,25 @@ async def classify(name: Optional[str] = Query(default=None)):
     # ---------------------------
 
     # Check if name is missing or empty
-    if name is None or name.strip() == "":
-        raise HTTPException(
-            status_code=400,
-            detail={
+    if not name or name.strip() == "":
+        return{
                 "status": "error",
-                "message": "Missing or empty query parameter: name"
+                "message": "Empty query parameter: name"
             }
-        )
 
     if any(char.isdigit() for char in name):
-        raise HTTPException( 
-            status_code=422, 
-            detail={ 
+        return{ 
                 "status":"error", 
                 "message":"Invalid name parameter: must be a string" 
             } 
-        )
     # ---------------------------
     # SERVICE CALL
     # ---------------------------
 
     try:
-        # Call service layer to get processed data
         result = get_gender_data(name)
-
-    except Exception:
-        # Handle external API failure
+    except Exception as e:
+        print(f"Error calling external API: {e}")
         raise HTTPException(
             status_code=502,
             detail={
@@ -77,13 +69,10 @@ async def classify(name: Optional[str] = Query(default=None)):
     #     )
         
     if not result or result.get("gender") is None or result.get("count") == 0:
-        raise HTTPException(
-            status_code=400,
-            detail={
+        return{
                 "status": "error",
-                "message": "No prediction available for the provided name"
-            }
-        )
+                "message": "Invalid/unrecognized name"
+                }
 
     # ---------------------------
     # FINAL RESPONSE
