@@ -36,7 +36,7 @@ def get_gender_data(name: str):
         return None
     
     gender = data.get("gender"),
-    probability = data.get("probability")
+    probability = data.get("probability"),
     sample_size = data.get("count")
 
     #comput confidence
